@@ -81,8 +81,7 @@ Copyright © HatioLab Inc. All rights reserved.
 					cancelable: true
 				});
 				if (!evt.defaultPrevented) {
-					grid.editOptions().updateByCell(true);
-					grid.editOptions().setUpdatable(true);
+					grid.setEditOptions('updatable', true);
 					// button tap 이벤트 추가
 					this.listen(this.$['button-group'], 'save-btn-tap', 'saveGridData');
 					this.fire('things-grid-save-configured', grid);
@@ -200,7 +199,7 @@ Copyright © HatioLab Inc. All rights reserved.
 			var changed = this.dataSet.getStateRows(changeType);
 
 			for (var i = 0; i < changed.length; i++) {
-				var changedRow = this.dataSet.getRowObject(changed[i]);
+				var changedRow = this.dataSet.getJsonRow(changed[i]);
 				changedRow.cud_flag_ = changeFlag;
 				changedData.push(changedRow);
 			}

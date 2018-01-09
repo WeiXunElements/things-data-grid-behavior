@@ -78,10 +78,7 @@ Copyright © HatioLab Inc. All rights reserved.
             dataSet: {
                 type: Object,
                 value: function() {
-                    if(window.isRealGrid) {
-                        return new RealGridJS.LocalDataProvider();
-                    }
-                    return DataLudi.createGridDataSet();
+                    return new RealGridJS.LocalDataProvider();
                 }
             },
 
@@ -396,273 +393,115 @@ Copyright © HatioLab Inc. All rights reserved.
         initializeGrid: function() {
             if (!this._checkInitPossible()) return;
 
-            if(window.isRealGrid) {
-                try {
-                    // this.gridImageDir = 'realgrid/assets';
-                    RealGridJS.setRootContext('');
-                    RealGridJS.setAssetRoot(this.gridImageDir);
 
-                    this.grid = new RealGridJS.GridView(this.gridContainerId);
-                } catch (e) {
-                    console.log(e);
-                    return;
+            try {
+                // this.gridImageDir = 'realgrid/assets';
+                RealGridJS.setRootContext('');
+                RealGridJS.setAssetRoot(this.gridImageDir);
+
+                this.grid = new RealGridJS.GridView(this.gridContainerId);
+            } catch (e) {
+                console.log(e);
+                return;
+            }
+
+            try {
+                if (Things.THINGS_XMES_THEME_STYLES) this.grid.setStyles(Things.THINGS_XMES_THEME_STYLES);
+                if (Things.THINGS_XMES_THEME_OPTIONS) this.grid.setOptions(Things.THINGS_XMES_THEME_OPTIONS);
+
+                this.grid.setDataSource(this.dataSet);
+
+                var images = new RealGridJS.ImageList('images', location.origin + '/' + this.gridImageDir);
+                images.addUrls(this.gridImageItems);
+                this.grid.registerImageList(images);
+
+                this.grid.addCellStyle('uneditable', { 'editable': false });
+                // this.grid.registerCellStyle('uneditable', { 'editable': false });
+
+                this.grid._gv.body().setCellDynamicStyles(this.realGridCellStyles);
+                // this.grid.body().setCellDynamicStyles(this.gridCellStyles);
+                
+                this.grid.setFooter({visible: this.showGridFooter});
+                // this.grid.footer().setVisible(this.showGridFooter);
+
+                // 로우 상태 표시 bar 옵션 설정 부분
+                this.grid.setStateBar({visible: false});
+
+                // 그리드 그룹핑 패널 옵션 설정 부분
+                this.grid.setPanel({visible: false});
+                
+                if (this.fixedColumnCount > 0) {
+                    this.grid.setFixedOptions({colCount: this.fixedColumnCount});
+                    // this.grid.displayOptions().setFixedColumnCount(this.fixedColumnCount);
                 }
 
-                try {
-                    if (Things.THINGS_XMES_THEME_STYLES) this.grid.setStyles(Things.THINGS_XMES_THEME_STYLES);
-                    if (Things.THINGS_XMES_THEME_OPTIONS) this.grid.setOptions(Things.THINGS_XMES_THEME_OPTIONS);
+                this.grid._container_ = this;
 
-                    this.grid.setDataSource(this.dataSet);
-                    this.grid.registerImageList({
-                        name: 'images',
-                        root: this.gridImageDir,
-                        items: this.gridImageItems
-                    });
-
-                    this.grid.addCellStyle('uneditable', { 'editable': false });
-                    // this.grid.registerCellStyle('uneditable', { 'editable': false });
-
-                    this.grid._gv.body().setCellDynamicStyles(this.realGridCellStyles);
-                    // this.grid.body().setCellDynamicStyles(this.gridCellStyles);
-                    
-                    this.grid.getFooter().visible = this.showGridFooter;
-                    // this.grid.footer().setVisible(this.showGridFooter);
-                    if (this.fixedColumnCount > 0) {
-                        this.grid.setFixedOptions({colCount: this.fixedColumnCount});
-                        // this.grid.displayOptions().setFixedColumnCount(this.fixedColumnCount);
-                    }
-
-                    this.grid._container_ = this;
-
-                    if (this.config) {
-                        this._setGridConfig(this.config);
-                    }
-
-                    if (this.model) {
-                        this._setGridModel(this.model);
-                    }
-
-                    if (this.columns) {
-                        this._setGridColumns(this.columns);
-                    }
-
-                    if (this.data) {
-                        this.dataSet.setRows(this.data);
-                    }
-
-                    if (this.grid && this.events) {
-                        var evt = this.fire('things-grid-event-configure', this.grid, { cancelable: true });
-                        if (!evt.defaultPrevented) {
-                            for (var eventName in this.events) {
-                                this.grid[eventName] = this[this.events[eventName]];
-                            }
-
-                            this.fire('things-grid-event-configured', this.grid);
-                        }
-                    }
-
-                    if(!window.isRealGrid) {
-                        // 그리드 Configuration
-                        // 1. Undo & redo
-                        this.dataSet.setUndoable(true);
-                        this.grid.setUndoable(true);
-                    }
-
-                    if(!window.isRealGrid) {
-                        // 2. Auto Fill
-                        this.grid.setAutoFill(true);
-                    }
-
-                    if(!window.isRealGrid) {
-                        // 3. Check Draggable
-                        this.grid.checkBar().setDraggable(true);
-                    }
-
-                    if(!window.isRealGrid) {
-                        // 4. Row Hover Mask & Mask Color
-                        this.grid.displayOptions().rowHoverMask().setVisible(true);
-                    } else {
-                        this.grid._gv.displayOptions().rowHoverMask().setVisible(true);
-                    }
-
-                    if(!window.isRealGrid) {
-                        // 5. Empty Data, Empty Grid message.
-                        this.grid.displayOptions().setEmptyDataMessage(Things.DataGlobal.t('text.emptyDataMessage'));
-                        this.grid.displayOptions().setEmptyGridMessage(Things.DataGlobal.t('text.emptyGridMessage'));
-                    } else {
-                        this.grid._gv.displayOptions().setEmptyMessage(Things.DataGlobal.t('text.emptyDataMessage'));
-                    }
-
-                    if(!window.isRealGrid) {
-                        this.grid.displayOptions().setFixedColumnMovable(true);
-                        this.grid.displayOptions().setFixedColumnResizable(true);
-                    }
-                    // 6. Row Height && Fixed columns
-                    // 7. set edit option to auto commit
-                    // this.grid.editOptions().setAutoCommit(true);
-
-                    var multilineFlag = false;
-                    this.columns.forEach(function(column) {
-                        if(!multilineFlag && ((column.styles && column.styles.iconIndex == 'image-renderer') || (column.editor && column.editor.type == 'multiline'))) {
-                            multilineFlag = true;
-                        }
-                    });
-
-                    // ImageRenderer가 있다면 Row Height를 100으로 확장
-                    if(multilineFlag) {
-                        if(this.rowHeight <= 50) this.rowHeight = 100;
-                    }
-
-                    if(!window.isRealGrid) {
-                        this.grid.displayOptions().setRowHeight(this.rowHeight);
-                    } else {
-                        this.grid._gv.displayOptions().setRowHeight(this.rowHeight);
-                    }
-                    
-                    if(!window.isRealGrid) {
-                        // 7. Styles
-                        this.grid.loadStyles({
-                            body: {
-                                rowHover: { background: '#26e3ad5f' },
-                                fixedCell: { background: '', borderRight: '', borderBottom: ''}
-                            }
-                        });
-                    } else {
-                        this.grid.setStyles({
-                            body: {
-                                rowHover: { background: '#26e3ad5f' },
-                                fixedCell: { background: '', borderRight: '', borderBottom: ''}
-                            }
-                        });
-                    }
-
-                    this.resizeGrid();
-                    this.fire('things-grid-configured', this.grid);
-
-                } catch (e) {
-                    this.fire('things-grid-configure-failed', {
-                        config: this.config,
-                        model: this.model,
-                        columns: this.columns,
-                        error: e
-                    });
-                }
-            } else {
-                try {
-                    DataLudi.setRootContext('');
-                    DataLudi.setAssetRoot(this.gridImageDir);
-                    this.grid = DataLudi.createGridView(this.gridContainerId, null, false);
-                } catch (e) {
-                    console.log(e);
-                    return;
+                if (this.config) {
+                    this._setGridConfig(this.config);
                 }
 
-                try {
-                    if (Things.THINGS_XMES_THEME_STYLES) this.grid.loadStyles(Things.THINGS_XMES_THEME_STYLES);
-                    if (Things.THINGS_XMES_THEME_OPTIONS) this.grid.setOptions(Things.THINGS_XMES_THEME_OPTIONS);
+                if (this.model) {
+                    this._setGridModel(this.model);
+                }
 
-                    this.grid.setDataSource(this.dataSet);
-                    this.grid.registerImageList({
-                        name: 'images',
-                        root: this.gridImageDir,
-                        items: this.gridImageItems
-                    });
+                if (this.columns) {
+                    this._setGridColumns(this.columns);
+                }
 
-                    this.grid.registerCellStyle('uneditable', { 'editable': false });
+                if (this.data) {
+                    this.dataSet.setRows(this.data);
+                }
 
-                    this.grid.body().setCellDynamicStyles(this.gridCellStyles);
-                    this.grid.footer().setVisible(this.showGridFooter);
-                    if (this.fixedColumnCount > 0) {
-                        this.grid.displayOptions().setFixedColumnCount(this.fixedColumnCount);
-                    }
-
-                    this.grid._container_ = this;
-
-                    if (this.config) {
-                        this._setGridConfig(this.config);
-                    }
-
-                    if (this.model) {
-                        this._setGridModel(this.model);
-                    }
-
-                    if (this.columns) {
-                        this._setGridColumns(this.columns);
-                    }
-
-                    if (this.data) {
-                        this.dataSet.setRows(this.data);
-                    }
-
-                    if (this.grid && this.events) {
-                        var evt = this.fire('things-grid-event-configure', this.grid, { cancelable: true });
-                        if (!evt.defaultPrevented) {
-                            for (var eventName in this.events) {
-                                this.grid[eventName] = this[this.events[eventName]];
-                            }
-
-                            this.fire('things-grid-event-configured', this.grid);
+                if (this.grid && this.events) {
+                    var evt = this.fire('things-grid-event-configure', this.grid, { cancelable: true });
+                    if (!evt.defaultPrevented) {
+                        for (var eventName in this.events) {
+                            this.grid[eventName] = this[this.events[eventName]];
                         }
+
+                        this.fire('things-grid-event-configured', this.grid);
                     }
+                }
 
-                    // 그리드 Configuration
-                    // 1. Undo & redo
-                    this.dataSet.setUndoable(true);
-                    this.grid.setUndoable(true);
+                this.grid._gv.displayOptions().rowHoverMask().setVisible(true);
+                this.grid._gv.displayOptions().setEmptyMessage(Things.DataGlobal.t('text.emptyDataMessage'));
 
-                    // 2. Auto Fill
-                    this.grid.setAutoFill(true);
+                // 6. Row Height && Fixed columns
+                // 7. set edit option to auto commit
+                // this.grid.editOptions().setAutoCommit(true);
 
-                    // 3. Check Draggable
-                    this.grid.checkBar().setDraggable(true);
-
-                    // 4. Row Hover Mask & Mask Color
-                    this.grid.displayOptions().rowHoverMask().setVisible(true);
-
-                    // 5. Empty Data, Empty Grid message.
-                    this.grid.displayOptions().setEmptyDataMessage(Things.DataGlobal.t('text.emptyDataMessage'));
-                    this.grid.displayOptions().setEmptyGridMessage(Things.DataGlobal.t('text.emptyGridMessage'));
-
-                    // 6. Row Height && Fixed columns
-                    this.grid.displayOptions().setFixedColumnMovable(true);
-                    this.grid.displayOptions().setFixedColumnResizable(true);
-                    // 7. set edit option to auto commit
-                    // this.grid.editOptions().setAutoCommit(true);
-
-                    var multilineFlag = false;
-                    this.columns.forEach(function(column) {
-                        if(!multilineFlag && ((column.styles && column.styles.iconIndex == 'image-renderer') || (column.editor && column.editor.type == 'multiline'))) {
-                            multilineFlag = true;
-                        }
-                    });
-
-                    // ImageRenderer가 있다면 Row Height를 100으로 확장
-                    if(multilineFlag) {
-                        if(this.rowHeight <= 50) this.rowHeight = 100;
+                var multilineFlag = false;
+                this.columns.forEach(function(column) {
+                    if(!multilineFlag && ((column.styles && column.styles.iconIndex == 'image-renderer') || (column.editor && column.editor.type == 'multiline'))) {
+                        multilineFlag = true;
                     }
+                });
 
-                    this.grid.displayOptions().setRowHeight(this.rowHeight);
+                // ImageRenderer가 있다면 Row Height를 100으로 확장
+                if(multilineFlag) {
+                    if(this.rowHeight <= 50) this.rowHeight = 100;
+                }
 
-
-                    // 7. Styles
-                    this.grid.loadStyles({
+                this.grid._gv.displayOptions().setRowHeight(this.rowHeight);
+                
+                this.grid.setStyles({
                     body: {
                         rowHover: { background: '#26e3ad5f' },
                         fixedCell: { background: '', borderRight: '', borderBottom: ''}
                     }
-                    });
+                });
 
-                    this.resizeGrid();
-                    this.fire('things-grid-configured', this.grid);
+                this.resizeGrid();
+                this.fire('things-grid-configured', this.grid);
 
-                } catch (e) {
-                    this.fire('things-grid-configure-failed', {
-                        config: this.config,
-                        model: this.model,
-                        columns: this.columns,
-                        error: e
-                    });
-                }
+            } catch (e) {
+                this.fire('things-grid-configure-failed', {
+                    config: this.config,
+                    model: this.model,
+                    columns: this.columns,
+                    error: e
+                });
             }
         },
 
@@ -784,12 +623,7 @@ Copyright © HatioLab Inc. All rights reserved.
 
             if (fields && fields.length > 0) {
                 this.dataSet.setFields(fields);
-
-                if(window.isRealGrid) {
-                    this.dataSet.checkRowStates(true);
-                } else {
-                    this.dataSet.setCheckStates(true);
-                }
+                this.dataSet.checkRowStates(true);
             }
         },
 
@@ -858,13 +692,13 @@ Copyright © HatioLab Inc. All rights reserved.
                     width: 30,
                     imageList: 'images',
                     header: {
-                        text: ''
+                        text: ' '
                     },
                     renderer: {
                         type: 'icon'
                     },
                     styles: {
-                        iconIndex: 'iconDetail.png',
+                        iconIndex: 0,
                         iconLocation: 'center'
                     }
                 });
@@ -1010,22 +844,19 @@ Copyright © HatioLab Inc. All rights reserved.
          * @param {Object} grid dataludi grid
          * @param {Object} index cell 선택 index
          */
-        _gridCellButtonClicked: function(grid, index) {
+        _gridCellButtonClicked: function(grid, itemIndex, column) {
             var thingsGrid = grid._container_;
 
             grid.commit();
-            var column = index.column;
-            var styles = column.styles();
-            var rowIdx = index.rowIndex;
-            var rowObj = index.getRow().getRowObject();
-            var fieldName = column.dataFieldName();
-            var dataSet = grid.dataSource();            
+            var styles = column.styles;
+            var rowObj = grid._dataSource.getJsonRow(itemIndex);
+            var fieldName = column.fieldName;
+            var dataSet = grid._dataSource;            
 
-            if(styles && styles.iconIndex() == 'resource-selector') {
-                rowObj[fieldName] = {};
-                dataSet.updateRow(rowIdx, rowObj);
-                grid.refreshView();
-            } else if (styles && styles.iconIndex() == 'popup-editor') {
+            if(styles && styles.iconIndex == 'resource-selector') {
+                grid.setValue(itemIndex, column.dataIndex, {});
+                grid.refresh();
+            } else if (styles && styles.iconIndex == 'popup-editor') {
                 grid.setFocusedCell();
                 var popupEditor = document.createElement('things-popup-editor');
                 var fieldValue = rowObj[fieldName];
@@ -1035,7 +866,6 @@ Copyright © HatioLab Inc. All rights reserved.
                 popupEditor.title = column.header().text();
                 popupEditor.confirmCallback = function() {
                     rowObj[fieldName] = popupEditor.value;
-                    dataSet.updateRow(rowIdx, rowObj);
                 };
                 if(popupEditor.is) {
                     var eventDetail = {
@@ -1081,42 +911,37 @@ Copyright © HatioLab Inc. All rights reserved.
          * Grid Cell Click 이벤트 핸들러
          ********
          * @param {Object} grid dataludi grid
-         * @param {Object} cellData 선택된 celldata
+         * @param {Object} index 선택된 cell의 index 정보
          */
-        _gridCellClicked: function(grid, cellData) {
-            if (!grid._container_ || !cellData) return;
+        _gridCellClicked: function(grid, index) {
+            if (!grid._container_ || !index) return;
             var thingsGrid = grid._container_;
+            var dataSet = grid.getDataSource();
+            var column = grid.columnByName(index.column);
 
-            if (cellData.dataColumn() || cellData.valueColumn() && cellData.getDataIndex(grid) >= 0) {
-                var rowIndex = cellData.getDataIndex(grid);
-                var colIndex = grid.focusedColumn().index();
-                var row = grid.focusedRow();
-                var selectedRowObj = null;
+            var rowIndex = index.dataRow;
+            var colIndex = index.fieldIndex;
+            var selectedRowObj = dataSet.getJsonRow(rowIndex);          
 
-                if (row && row.dataIndex() >= 0) {
-                    selectedRowObj = row.getRowObject();
+            if(thingsGrid.preventMultiClickEvent && thingsGrid.selectedRowData && selectedRowObj.id && selectedRowObj.id === thingsGrid.selectedRowData.id) {
+                return;
+            }
 
-                    if(thingsGrid.preventMultiClickEvent && thingsGrid.selectedRowData && selectedRowObj.id && selectedRowObj.id === thingsGrid.selectedRowData.id) {
-                        return;
-                    }
+            thingsGrid._setSelectedRowData(selectedRowObj);
+            thingsGrid.fire('things-grid-row-data-select', thingsGrid.selectedRowData);
 
-                    thingsGrid._setSelectedRowData(selectedRowObj);
-                    thingsGrid.fire('things-grid-row-data-select', thingsGrid.selectedRowData);
-                }
-
+            if(thingsGrid.dataSet && colIndex >= 0) {
                 if (thingsGrid.dataSet && colIndex >= 0) {
                     thingsGrid._setSelectedCellData(thingsGrid.dataSet.getValue(rowIndex, colIndex));
-                    thingsGrid.fire('things-grid-cell-data-select', { row: thingsGrid.selectedRowData, cell: cellData });
+                    thingsGrid.fire('things-grid-cell-data-select', { row: thingsGrid.selectedRowData, index: index });
                 }
 
-                if (thingsGrid.enableDetailColumn &&
-                    cellData.column._name == 'Detail' &&
-                    cellData.column._renderer &&
-                    cellData.column._renderer.type == 'icon' &&
-                    selectedRowObj) {
-                    thingsGrid._setSelectedRowData(selectedRowObj);
-                    thingsGrid.fire('things-grid-detail-tap', thingsGrid.selectedRowData);
-                }
+            } else if (thingsGrid.dataSet &&
+                       index.column == 'Detail' &&
+                       index.fieldName ==  null &&
+                       column.styles.iconIndex == 0) {
+                       thingsGrid._setSelectedRowData(selectedRowObj);
+                       thingsGrid.fire('things-grid-detail-tap', thingsGrid.selectedRowData);
             }
         },
 
@@ -1128,22 +953,20 @@ Copyright © HatioLab Inc. All rights reserved.
          */
         _gridCellDblClicked: function(grid, index) {
             var me = grid._container_;
-            var column = index.column;
+            var column = (index.column) ? grid.columnByName(index.column) : grid.columnByField(index.fieldName);
             grid.commit();
 
             /**
              * Cell style이 uneditable이면 return
              */
-            var rowIdx = index.rowIndex;
-            var fieldIdx = index.dataField();
-            var cellStyleId = grid.getCellStyleId(rowIdx, fieldIdx);
+            var cellStyleId = grid.getCellStyle(index.dataRow, index.fieldIndex);
             if(cellStyleId == 'uneditable') return;
 
-            var iconStyle = column.styles().iconIndex();
+            var iconStyle = (column.styles && column.styles.iconIndex) ? column.styles.iconIndex : null;
 
             if (iconStyle == 'resource-selector') {
                 var matchColumn = me.columns.filter(function(col) {
-                    return (column.name() == col.name);
+                    return (column.name == col.name);
                 });
                 var eventDetail = {
                     userData: matchColumn ? matchColumn[0].userData : null,
@@ -1157,16 +980,15 @@ Copyright © HatioLab Inc. All rights reserved.
             } else if (iconStyle == 'date-picker') {
                 var evt = me.fire('things-grid-date-column-edit', eventDetail, { cancelable: true });
                 if (!evt.defaultPrevented) {
-                    var dataSet = grid.dataSource();
-                    var row = grid.focusedRow();
-                    var rowObj = row.getRowObject();
+                    var dataSet = grid.getDataSource();
+                    var rowObj = dataSet.getJsonRow(index.dataRow);
                     var dataObj = {
                         owner: me,
                         ownerGrid: grid,
                         ownerGridObj: rowObj,
-                        ownerGridIdx: index.rowIndex,
-                        ownerGridColumn: column.name(),
-                        date: rowObj[column.name()]
+                        ownerGridIdx: index.dataRow,
+                        ownerGridColumn: column.name,
+                        date: rowObj[column.name]
                     };
 
                     if(column.userData()) {
@@ -1181,17 +1003,16 @@ Copyright © HatioLab Inc. All rights reserved.
             } else if (iconStyle == 'image-selector' || iconStyle == 'image-renderer') {
                 var evt = me.fire('things-grid-image-selector-edit', eventDetail, { cancelable: true });
                 if(!evt.defaultPrevented) {
-                    var dataSet = grid.dataSource();
-                    var row = grid.focusedRow();
-                    var rowObj = row.getRowObject();
+                    var dataSet = grid.getDataSource();
+                    var rowObj = dataSet.getJsonRow(index.dataRow);
                     var dataObj = {
                         owner: me,
                         ownerGrid: grid,
                         ownerGridObj: rowObj,
-                        ownerGridIdx: index.rowIndex,
-                        ownerGridColumn: column.name(),
+                        ownerGridIdx: index.dataRow,
+                        ownerGridColumn: column.name,
                         displayField: 'id',
-                        selectedImageId: rowObj[column.name()]
+                        selectedImageId: rowObj[column.name]
                     };
 
                     me.fire('things-image-selector-toggle', { dataObj : dataObj, callback : me._applySelectedImage });
@@ -1200,12 +1021,11 @@ Copyright © HatioLab Inc. All rights reserved.
             } else if (iconStyle == 'file-selector') {
                 var evt = me.fire('things-grid-file-selector-edit', eventDetail, { cancelable: true});
                 if(!evt.defaultPrevented) {
-                    var dataSet = grid.dataSource();
-                    var row = grid.focusedRow();
-                    var rowObj = row.getRowObject();
+                    var dataSet = grid.getDataSource();
+                    var rowObj = dataSet.getJsonRow(index.dataRow);
 
                     var matchColumn = me.columns.filter(function(col) {
-                        return (column.name() == col.name);
+                        return (column.name == col.name);
                     });
 
                     var defaultStorage = matchColumn ? matchColumn[0].userData.defaultStorage : null;
@@ -1214,9 +1034,9 @@ Copyright © HatioLab Inc. All rights reserved.
                         owner: me,
                         ownerGrid: grid,
                         ownerGridObj: rowObj,
-                        ownerGridIdx: index.rowIndex,
-                        ownerGridColumn: column.name(),
-                        selectedImageId: rowObj[column.name()],
+                        ownerGridIdx: index.dataRow,
+                        ownerGridColumn: column.name,
+                        selectedImageId: rowObj[column.name],
                         defaultStorage: defaultStorage
                     };
 
@@ -1224,7 +1044,7 @@ Copyright © HatioLab Inc. All rights reserved.
                 }
             } else if (iconStyle == 'resource-format-selector') {
                 var matchColumn = me.columns.filter(function(col) {
-                    return (column.name() == col.name);
+                    return (column.name == col.name);
                 });
                 var eventDetail = {
                     userData: matchColumn ? matchColumn[0].userData : null,
@@ -1249,11 +1069,11 @@ Copyright © HatioLab Inc. All rights reserved.
             var grid = dataObj.ownerGrid;
             var rowObj = dataObj.ownerGridObj;
             var rowIdx = dataObj.ownerGridIdx;
-            var dataSet = grid.dataSource();
+            var dataSet = grid.getDataSource();
 
             rowObj[dataObj.ownerGridColumn] = dataObj.date;
             dataSet.updateRow(rowIdx, rowObj);
-            grid.refreshView();
+            grid.refresh();
         },
 
         /**
@@ -1265,11 +1085,11 @@ Copyright © HatioLab Inc. All rights reserved.
             var grid = dataObj.ownerGrid;
             var rowObj = dataObj.ownerGridObj;
             var rowIdx = dataObj.ownerGridIdx;
-            var dataSet = grid.dataSource();
+            var dataSet = grid.getDataSource();
 
             rowObj[dataObj.ownerGridColumn] = dataObj.value;
             dataSet.updateRow(rowIdx, rowObj);
-            grid.refreshView();
+            grid.refresh();
         },
 
         /**
@@ -1281,11 +1101,11 @@ Copyright © HatioLab Inc. All rights reserved.
             var grid = dataObj.ownerGrid;
             var rowObj = dataObj.ownerGridObj;
             var rowIdx = dataObj.ownerGridIdx;
-            var dataSet = grid.dataSource();
+            var dataSet = grid.getDataSource();
 
             rowObj['attachment'] = { id : dataObj.value, name : dataObj.displayValue };
             dataSet.updateRow(rowIdx, rowObj);
-            grid.refreshView();
+            grid.refresh();
 
         }
     };
