@@ -50,8 +50,8 @@ Copyright © HatioLab Inc. All rights reserved.
 					cancelable: true
 				});
 				if (!evt.defaultPrevented) {
-					grid.setEditOptions('editable', true);
-					grid.setEditOptions('appendable', true);
+					grid.editOptions().setInsertable(true);
+					grid.editOptions().setAppendable(true);
 
 					// button tap 이벤트 추가
 					this.listen(this.$['button-group'], 'add-btn-tap', 'addGridRow');
@@ -93,17 +93,17 @@ Copyright © HatioLab Inc. All rights reserved.
 		 */
 		_findDefaultValue: function(fieldModel) {
 			if (fieldModel.rank && fieldModel.rank == true) {
-				var rowCount = this.dataSet.getRowCount();
+				var rowCount = this.dataSet.rowCount();
 				if (!rowCount || rowCount == 0) return fieldModel.increment;
 
-				var gridItems = this.dataSet.getJsonRows(0, rowCount);
+				var gridItems = this.dataSet.getRowObjects(0, rowCount);
 				var rankList = gridItems.map(function(item) {
 					return item[fieldModel.fieldName];
 				});
 				var maxRank = Math.max(...rankList);
 				return maxRank + fieldModel.increment;
 
-			} else if (fieldModel.defaultValue) {
+			} else if (typeof fieldModel.defaultValue!='undefined' && fieldModel.defaultValue!=null) {
 				var defVal = fieldModel.defaultValue;
 
 				if (typeof defVal == 'string' && defVal.indexOf('$today') >= 0) {
