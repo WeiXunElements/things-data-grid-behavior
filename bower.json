@@ -1,6 +1,6 @@
 {
   "name": "things-data-grid-behavior",
-  "version": "v1.0.1",
+  "version": "v1.0.2",
   "authors": [
     "Hatio Lab. <heartyoh@hatiolab.com>"
   ],
@@ -20,13 +20,13 @@
   "dependencies": {
     "polymer": "Polymer/polymer#^1.2.0",
     "iron-resizable-behavior": "^1.0.3",
-    "things-id": "ThingsElements/things-id",
-    "jsonfn": "https://github.com/vkiryukhin/jsonfn.git",
-    "things-msg-box-behavior": "ThingsElements/things-msg-box-behavior",
-    "things-import-excel": "ThingsElements/things-import-excel",
-    "things-paginator": "ThingsElements/things-paginator",
-    "things-ajax": "ThingsElements/things-ajax",
-    "things-theme": "ThingsElements/things-theme"
+    "things-id": "ThingsElements/things-id#master",
+    "jsonfn": "https://github.com/vkiryukhin/jsonfn.git#master",
+    "things-msg-box-behavior": "ThingsElements/things-msg-box-behavior#master",
+    "things-import-excel": "ThingsElements/things-import-excel#master",
+    "things-paginator": "ThingsElements/things-paginator#master",
+    "things-ajax": "ThingsElements/things-ajax#master",
+    "things-theme": "ThingsElements/things-theme#master"
   },
   "devDependencies": {
     "iron-component-page": "PolymerElements/iron-component-page#^1.0.0",
